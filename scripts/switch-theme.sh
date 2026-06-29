@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
-# switch-theme.sh - Remade from scratch for robustness and extensibility
+# switch-theme.sh - Robust theme switcher for macOS dotfiles
+# Usage:
+#   ./switch-theme.sh [main|moon|dawn|catppuccin|black|gruvbox]
 
-# --- Configuration & Paths ---
-DOTFILES="$HOME/.dotfiles"
-THEME=$1
+set -euo pipefail
+
+DOTFILES="$HOME/dotfiles_mac"
+THEME="${1:-}"
 
 # Available Themes: main, moon, dawn, catppuccin, black, gruvbox
 if [[ -z "$THEME" ]]; then
@@ -40,42 +43,6 @@ declare -A ALACRITTY_THEMES=(
     [gruvbox]="gruvbox-dark.toml"
 )
 
-declare -A HYPR_THEMES=(
-    [main]="rose-pine.conf"
-    [moon]="rose-pine-moon.conf"
-    [dawn]="rose-pine-dawn.conf"
-    [catppuccin]="mocha.conf"
-    [black]="black-metal.conf"
-    [gruvbox]="gruvbox.conf"
-)
-
-declare -A WAYBAR_THEMES=(
-    [main]="rose-pine.css"
-    [moon]="rose-pine-moon.css"
-    [dawn]="rose-pine-dawn.css"
-    [catppuccin]="mocha.css"
-    [black]="black-metal.css"
-    [gruvbox]="gruvbox.css"
-)
-
-declare -A WOFI_THEMES=(
-    [main]="rose-pine.css"
-    [moon]="rose-pine-moon.css"
-    [dawn]="rose-pine-dawn.css"
-    [catppuccin]="mocha.css"
-    [black]="black-metal.css"
-    [gruvbox]="gruvbox.css"
-)
-
-declare -A WALLPAPERS=(
-    [main]="swww/1.jpg"
-    [moon]="swww/japanes gigital art.png"
-    [dawn]="swww/japanes gigital art.png"
-    [catppuccin]="swww/1.jpg"
-    [black]="swww/1-dark-waters.jpg"
-    [gruvbox]="swww/5-leaves.jpg"
-)
-
 declare -A NVIM_VARIANTS=(
     [main]="main"
     [moon]="moon"
@@ -104,7 +71,7 @@ declare -A TMUX_THEMES=(
 )
 
 # Validate Theme
-if [[ -z "${GHOSTTY_THEMES[$THEME]}" ]]; then
+if [[ -z "${GHOSTTY_THEMES[$THEME]:-}" ]]; then
     echo "Unknown theme: $THEME"
     exit 1
 fi
@@ -112,9 +79,11 @@ fi
 echo "Switching to $THEME..."
 
 # --- 1. Ghostty ---
-GHOSTTY_THEME_FILE="$DOTFILES/ghostty/.config/ghostty/theme.config"
-echo "theme = ${GHOSTTY_THEMES[$THEME]}" >"$GHOSTTY_THEME_FILE"
-echo "✓ Ghostty updated"
+GHOSTTY_DIR="$DOTFILES/ghostty/.config/ghostty"
+if [ -d "$GHOSTTY_DIR" ]; then
+    echo "theme = ${GHOSTTY_THEMES[$THEME]}" > "$GHOSTTY_DIR/theme.config"
+    echo "✓ Ghostty updated"
+fi
 
 # --- 2. Kitty ---
 if command -v kitty >/dev/null 2>&1; then
@@ -123,102 +92,70 @@ if command -v kitty >/dev/null 2>&1; then
 fi
 
 # --- 3. Alacritty ---
-ALACRITTY_THEME_FILE="$DOTFILES/alacritty/.config/alacritty/theme.toml"
-rm -f "$ALACRITTY_THEME_FILE"
-cp "$DOTFILES/alacritty/.config/alacritty/${ALACRITTY_THEMES[$THEME]}" "$ALACRITTY_THEME_FILE"
-echo "✓ Alacritty updated"
+ALACRITTY_DIR="$DOTFILES/alacritty/.config/alacritty"
+if [ -d "$ALACRITTY_DIR" ]; then
+    ALACRITTY_THEME_FILE="$ALACRITTY_DIR/theme.toml"
+    THEME_SRC="$ALACRITTY_DIR/${ALACRITTY_THEMES[$THEME]}"
+    if [ -f "$THEME_SRC" ]; then
+        rm -f "$ALACRITTY_THEME_FILE"
+        cp "$THEME_SRC" "$ALACRITTY_THEME_FILE"
+        echo "✓ Alacritty updated"
+    fi
+fi
 
 # --- 4. Neovim ---
-NVIM_VARIANT_FILE="$DOTFILES/nvim/.config/nvim/lua/config/theme_variant.lua"
-mkdir -p "$(dirname "$NVIM_VARIANT_FILE")"
-echo "return \"${NVIM_VARIANTS[$THEME]}\"" >"$NVIM_VARIANT_FILE"
-echo "✓ Neovim updated"
-
-# --- 5. Hyprland ---
-HYPR_THEME_FILE="$DOTFILES/hypr/.config/hypr/theme.conf"
-rm -f "$HYPR_THEME_FILE"
-cp "$DOTFILES/hypr/.config/hypr/themes/${HYPR_THEMES[$THEME]}" "$HYPR_THEME_FILE"
-if command -v hyprctl >/dev/null 2>&1; then
-    hyprctl reload
-    echo "✓ Hyprland updated and reloaded"
+NVIM_CONFIG_DIR="$DOTFILES/nvim/.config/nvim"
+if [ -d "$NVIM_CONFIG_DIR" ]; then
+    NVIM_VARIANT_FILE="$NVIM_CONFIG_DIR/lua/config/theme_variant.lua"
+    mkdir -p "$(dirname "$NVIM_VARIANT_FILE")"
+    echo "return \"${NVIM_VARIANTS[$THEME]}\"" > "$NVIM_VARIANT_FILE"
+    echo "✓ Neovim updated"
 fi
 
-# --- 6. Waybar ---
-WAYBAR_THEME_FILE="$DOTFILES/waybar/.config/waybar/theme.css"
-rm -f "$WAYBAR_THEME_FILE"
-cp "$DOTFILES/waybar/.config/waybar/themes/${WAYBAR_THEMES[$THEME]}" "$WAYBAR_THEME_FILE"
-# Touch style.css to force re-evaluation of the import
-touch "$DOTFILES/waybar/.config/waybar/style.css"
-# Trigger Waybar reload
-if pgrep -x waybar >/dev/null; then
-    pkill -USR2 waybar
-    echo "✓ Waybar updated and reloaded"
-else
-    echo "✓ Waybar updated"
-fi
-
-# --- 7. Wofi ---
-WOFI_THEME_FILE="$DOTFILES/wofi/.config/wofi/theme.css"
-rm -f "$WOFI_THEME_FILE"
-cp "$DOTFILES/wofi/.config/wofi/themes/${WOFI_THEMES[$THEME]}" "$WOFI_THEME_FILE"
-echo "✓ Wofi updated"
-
-# --- 8. Hyprlock ---
-HYPRLOCK_CONFIG="$DOTFILES/hypr/.config/hypr/hyprlock.conf"
-WALLPAPER_PATH="$DOTFILES/assets/wallpapers/${WALLPAPERS[$THEME]}"
-if [ -f "$HYPRLOCK_CONFIG" ]; then
-    sed -i "s|^\$wall = .*|\$wall = $WALLPAPER_PATH|" "$HYPRLOCK_CONFIG"
-    echo "✓ Hyprlock updated"
-fi
-
-# --- 9. Tmux ---
-TMUX_TARGET="$HOME/.tmux_theme.tmux"
-TMUX_SOURCE="$DOTFILES/tmux/themes/${TMUX_THEMES[$THEME]}"
-if [ -f "$TMUX_SOURCE" ]; then
-    ln -sf "$TMUX_SOURCE" "$TMUX_TARGET"
-    if [ -n "$TMUX" ]; then
-        tmux source-file "$HOME/.tmux.conf"
-        echo "✓ Tmux updated and reloaded"
-    else
-        echo "✓ Tmux updated"
+# --- 5. Tmux ---
+TMUX_DIR="$DOTFILES/tmux"
+if [ -d "$TMUX_DIR" ]; then
+    TMUX_TARGET="$HOME/.tmux_theme.tmux"
+    TMUX_SOURCE="$TMUX_DIR/themes/${TMUX_THEMES[$THEME]}"
+    if [ -f "$TMUX_SOURCE" ]; then
+        ln -sf "$TMUX_SOURCE" "$TMUX_TARGET"
+        if [ -n "${TMUX:-}" ] && command -v tmux >/dev/null 2>&1; then
+            tmux source-file "$HOME/.tmux.conf"
+            echo "✓ Tmux updated and reloaded"
+        else
+            echo "✓ Tmux updated"
+        fi
     fi
 fi
 
-# --- 10. Yazi ---
+# --- 6. Yazi ---
 YAZI_DIR="$DOTFILES/yazi/.config/yazi"
-YAZI_SOURCE="${YAZI_THEMES[$THEME]}"
-if [ -f "$YAZI_DIR/$YAZI_SOURCE" ]; then
-    ln -sf "$YAZI_SOURCE" "$YAZI_DIR/theme.toml"
-    echo "✓ Yazi updated"
+if [ -d "$YAZI_DIR" ]; then
+    YAZI_SOURCE="${YAZI_THEMES[$THEME]}"
+    if [ -f "$YAZI_DIR/$YAZI_SOURCE" ]; then
+        ln -sf "$YAZI_SOURCE" "$YAZI_DIR/theme.toml"
+        echo "✓ Yazi updated"
+    fi
 fi
 
-# --- 11. Starship ---
-# Since starship.toml is stowed, we can't easily symlink it to another file in the same dir
-# without breaking stow if we are not careful.
-# But starship doesn't support imports well.
-# We'll just overwrite it if it's catppuccin, or keep it standard.
-# Actually, let's just symlink at the $HOME level for Starship to be safe,
-# or just copy the content. Overwriting is safer for Stow.
-STARSHIP_CONFIG="$DOTFILES/starship/.config/starship.toml"
-if [ "$THEME" = "catppuccin" ]; then
-    cp "$DOTFILES/starship/.config/catppuccin.toml" "$STARSHIP_CONFIG"
-    echo "✓ Starship updated (Catppuccin)"
-else
-    # Restore standard if we have a backup or a known state
-    # For now, I'll just leave it.
-    echo "✓ Starship left as standard"
-fi
-
-# --- 12. Wallpaper ---
-if command -v swww >/dev/null 2>&1; then
-
-    if ! pgrep -x swww-daemon >/dev/null; then
-        swww-daemon &
-        sleep 0.5
+# --- 7. Starship ---
+STARSHIP_DIR="$DOTFILES/starship/.config"
+if [ -d "$STARSHIP_DIR" ]; then
+    STARSHIP_CONFIG="$STARSHIP_DIR/starship.toml"
+    THEME_FILE=""
+    if [ "$THEME" = "catppuccin" ]; then
+        THEME_FILE="$STARSHIP_DIR/catppuccin.toml"
+    elif [ "$THEME" = "main" ] || [ "$THEME" = "moon" ] || [ "$THEME" = "dawn" ]; then
+        THEME_FILE="$STARSHIP_DIR/starship_rosepine.bak"
     fi
 
-    swww img "$WALLPAPER_PATH" --transition-type wipe --transition-fps 180
-    echo "✓ Wallpaper updated"
+    if [ -n "$THEME_FILE" ] && [ -f "$THEME_FILE" ]; then
+        cp "$THEME_FILE" "$STARSHIP_CONFIG"
+        echo "✓ Starship updated ($THEME)"
+    else
+        echo "✓ Starship left as standard"
+    fi
 fi
 
 echo "Successfully switched to theme: $THEME"
+exit 0

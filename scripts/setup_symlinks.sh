@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# setup_symlinks.sh - Automate symlinking of dotfiles using GNU Stow
+# setup_symlinks.sh - Automate symlinking of macOS dotfiles using GNU Stow
 # Usage:
 #   ./setup_symlinks.sh              → stows packages
 #   ./setup_symlinks.sh --dry-run    → simulates without modifying
@@ -28,7 +28,6 @@ log_success() { echo -e "${GREEN}  ✓${RESET} $*"; }
 log_error() { echo -e "${RED}  ✗${RESET} $*" >&2; }
 
 # ── Arguments ──────────────────────────────────────────────────────────────────
-OS_TYPE=$(uname -s)
 for arg in "$@"; do
     case $arg in
     --dry-run)
@@ -62,19 +61,19 @@ done
 
 # ── Dependency Check ──────────────────────────────────────────────────────────
 if ! command -v stow &>/dev/null; then
-    log_error "GNU Stow is not installed. Install it first (e.g., 'brew install stow')."
+    log_error "GNU Stow is not installed. Please install it first (e.g., 'brew install stow')."
     exit 1
 fi
 
 # ── Homebrew Mode ─────────────────────────────────────────────────────────────
-if $RUN_BREW; then
+if [ "$RUN_BREW" = true ]; then
     if ! command -v brew &>/dev/null; then
-        log_error "Homebrew is not installed. https://brew.sh/"
+        log_error "Homebrew is not installed. Please install Homebrew first (https://brew.sh/)."
     else
         echo -e "${BLUE}▸ Homebrew (Brewfile)${RESET}"
         BREWFILE="$DOTFILES_DIR/brew/Brewfile"
         if [ -f "$BREWFILE" ]; then
-            if $DRY_RUN; then
+            if [ "$DRY_RUN" = true ]; then
                 log_info "[dry-run] Would run: brew bundle install --file=\"$BREWFILE\""
             else
                 brew bundle install --file="$BREWFILE"
@@ -90,12 +89,6 @@ fi
 # Packages to exclude (not meant for stowing)
 EXCLUDE=("scripts" "assets" "gemini" "raycast")
 
-# Add macOS specific exclusions if on Linux
-if [[ "$OS_TYPE" == "Linux" ]]; then
-    log_info "Linux detected. Excluding macOS-specific configs..."
-    EXCLUDE+=("aerospace" "karabiner" "macmon")
-fi
-
 cd "$DOTFILES_DIR"
 
 # Collect packages (directories that are not in EXCLUDE and don't start with .)
@@ -108,13 +101,20 @@ for dir in */; do
 done
 
 STOW_FLAGS="-v -t $HOME"
-$DRY_RUN && STOW_FLAGS+=" -n"
-$UNLINK && STOW_FLAGS+=" -D" || STOW_FLAGS+=" -S"
+if [ "$DRY_RUN" = true ]; then
+    STOW_FLAGS+=" -n"
+fi
 
-echo -e "${BLUE}Packages to ${UNLINK:+un}stow:${RESET} ${packages[*]}\n"
+if [ "$UNLINK" = true ]; then
+    STOW_FLAGS+=" -D"
+    echo -e "${BLUE}Packages to unstow:${RESET} ${packages[*]}\n"
+else
+    STOW_FLAGS+=" -S"
+    echo -e "${BLUE}Packages to stow:${RESET} ${packages[*]}\n"
+fi
 
 for pkg in "${packages[@]}"; do
-    if $UNLINK; then
+    if [ "$UNLINK" = true ]; then
         stow $STOW_FLAGS "$pkg" || log_error "Failed to unstow $pkg"
     else
         # Stow will fail if it encounters a real file instead of a symlink
@@ -124,11 +124,11 @@ for pkg in "${packages[@]}"; do
 done
 
 echo ""
-if $UNLINK; then
+if [ "$UNLINK" = true ]; then
     log_success "Unlink complete!"
 else
     log_success "Stow complete!"
-    if $DRY_RUN; then
+    if [ "$DRY_RUN" = true ]; then
         echo -e "${YELLOW}(Dry-run mode — run without --dry-run to apply)${RESET}"
     fi
 fi
