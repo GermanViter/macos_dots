@@ -1,0 +1,1 @@
+/Users/germaviter/.gemini/scripts/obsidian_sync.py

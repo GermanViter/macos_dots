@@ -1,0 +1,14 @@
+[user]
+	name = GermanViter
+	email = 228225241+GermanViter@users.noreply.github.com
+[core]
+	editor = nvim
+	autocrlf = input
+[init]
+	defaultBranch = master
+[column]
+	ui = auto
+[pull]
+	rebase = false
+[credential]
+	helper = store
