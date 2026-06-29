@@ -1,7 +1,6 @@
 # Dotfiles
 
-Personal configuration files and environment settings for macOS and Linux. 
-> Some apps work better with MacOs like AeroSpace so if you are on Linux, just delete those folders before running the script. The rest of the configs should work fine on both platforms.
+Personal configuration files and environment settings for macOS.
 
 ## Contents
 - [Overview](#overview)
@@ -22,8 +21,6 @@ This repository uses a modular structure where each directory represents an appl
 ## Screenshots
 
 <ul align="center">
-  <li><h3>Hyprland</h3><img src="assets/hyprland.png" width="400" /></li>
-  <li><h3>Hyprlock</h3><img src="assets/hyprlock.png" width="400" /></li>
   <li><h3>Neovim</h3><img src="assets/neovim.png" width="400" /></li>
   <li><h3>Yazi</h3><img src="assets/yazi.png" width="400" /></li>
 </ul>
@@ -102,13 +99,9 @@ The `scripts/switch-theme.sh` script allows you to quickly switch between differ
 - **Ghostty**: Updates the `theme` setting in `ghostty/config`.
 - **Kitty**: Uses the themes kitten to reload all active instances.
 - **Neovim**: Updates a local state file to switch between Rosé Pine variants or the Catppuccin plugin.
-- **Starship**: Symlinks the appropriate `.toml` config.
+- **Starship**: Restores the theme-specific prompt configuration (`starship.toml`).
 - **Yazi**: Symlinks the appropriate `.toml` theme file.
 - **Tmux**: Symlinks the appropriate `.tmux` theme file and reloads the config.
-- **Wallpaper**: Changes the system wallpaper (**macOS and Linux support**).
-
-### Modifying wallpapers
-To add new wallpapers, add an image to assets/wallpapers/ and update the `WALLPAPER` variable in the `switch case` section for the theme you want. The script supports macOS, Wayland, and X11 wallpaper tools.
 
 ---
 
