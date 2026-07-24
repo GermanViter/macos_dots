@@ -1,50 +1,30 @@
+tap "nikitabobko/tap"
+# Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
-brew "cmake"
-brew "cmatrix"
-brew "cowsay"
+brew "npm"
+# Modern, maintained replacement for ls
 brew "eza"
+# Like neofetch, but much faster because written mostly in C
 brew "fastfetch"
-brew "fd"
-brew "figlet"
-brew "fish"
+# Command-line fuzzy finder written in Go
 brew "fzf"
-brew "node"
-brew "gemini-cli"
+# Distributed revision control system
 brew "git"
-brew "go"
-brew "openjdk"
-brew "python@3.14"
-brew "jdtls"
-brew "jp2a"
-brew "lazygit"
-brew "libedit"
-brew "libnet"
-brew "libpcap"
-brew "lua"
-brew "luarocks"
-brew "mailsy"
-brew "neofetch"
-brew "neovim", args: ["HEAD"]
-brew "nginx", restart_service: :changed
-brew "nmap"
-brew "numpy"
-brew "pipx"
-brew "pkgconf"
-brew "ripgrep"
-brew "sdl2"
-brew "sdl2_image"
-brew "sdl2_mixer"
-brew "sdl2_ttf"
-brew "sevenzip"
+# Ambitious Vim-fork focused on extensibility and agility
+brew "neovim"
+# Cross-shell prompt for astronauts
 brew "starship"
+# Organize software neatly under a single directory tree (e.g. /usr/local)
 brew "stow"
-brew "tmux"
-brew "tree"
-brew "yazi"
+# Shell extension to navigate your filesystem faster
 brew "zoxide"
-brew "zsh-autocomplete"
+# Fish-like fast/unobtrusive autosuggestions for zsh
 brew "zsh-autosuggestions"
+# Fish shell like syntax highlighting for zsh
 brew "zsh-syntax-highlighting"
-brew "anomalyco/tap/opencode"
-brew "oven-sh/bun/bun"
-cask "ghostty"
+# AeroSpace is an i3-like tiling window manager for macOS
+cask "nikitabobko/tap/aerospace", trusted: true
+# Web browser focusing on privacy
+cask "brave-browser"
+# GPU-based terminal emulator
+cask "kitty"
