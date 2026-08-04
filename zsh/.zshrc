@@ -110,3 +110,7 @@ fcd() {
 
 # Load local overrides (for private paths/secrets)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/germanviter/.local/bin:$PATH"
