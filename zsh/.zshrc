@@ -1,5 +1,15 @@
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
+
 # ssh
-alias ssh-german='ssh true_ssh_container'   
+cachyos() {
+  if ping -c1 -W1 "$CACHYOS_GATEWAY" &>/dev/null; then
+    echo "→ Home network detected, using local IP"
+    ssh -i ~/.ssh/cachyos/cachyos germanviter@"$CACHYOS_LOCAL_IP"
+  else
+    echo "→ Away from home, using public IP"
+    ssh -i ~/.ssh/cachyos/cachyos germanviter@"$CACHYOS_REMOTE_HOST"
+  fi
+}
 
 # Lazy
 alias ..='z ..'
