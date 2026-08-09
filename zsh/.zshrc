@@ -74,12 +74,6 @@ if command -v eza >/dev/null 2>&1; then
     alias la='eza --icons=always -a --group-directories-first'
 fi
 
-# --- Bat (Modern cat) ---
-export BAT_THEME='rose-pine'
-if command -v bat >/dev/null 2>&1; then
-    alias cat='bat'
-fi
-
 # --- Fzf (Fuzzy Finder) ---
 if command -v fzf >/dev/null 2>&1; then
     source <(fzf --zsh)
